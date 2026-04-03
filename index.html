@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mewbot — Pokemon on Discord</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100;0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,100;1,9..40,300;1,9..40,400;1,9..40,500;1,9..40,700&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0e0f17;
+      --bg2: #13141f;
+      --bg3: #181928;
+      --surface: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.07);
+      --border2: rgba(255, 255, 255, 0.13);
+      --text: #eeedf5;
+      --muted: rgba(238, 237, 245, 0.48);
+      --faint: rgba(238, 237, 245, 0.22);
+      --accent: #7b6ef6;
+      --accent2: #9d92f8;
+      --pill: rgba(255, 255, 255, 0.06);
+      --pill-border: rgba(255, 255, 255, 0.11);
+      --fire: #ff6b47;
+      --water: #4db8ff;
+      --electric: #ffc844;
+      --psychic: #f06aaf;
+      --grass: #5cd67a;
+      --dragon: #7b6ef6;
+      --serif: 'DM Sans', system-ui, sans-serif;
+      --sans: 'DM Sans', system-ui, sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.65;
+      overflow-x: hidden;
+      font-weight: 500;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 14px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(24px);
+      background: rgba(14, 15, 23, 0.75);
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: 20px;
+    }
+
+    .nav-logo-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1.5px solid rgba(123, 110, 246, 0.4);
+    }
+
+    .nav-pills {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: var(--pill);
+      border: 0.5px solid var(--pill-border);
+      border-radius: 100px;
+      padding: 5px 6px;
+    }
+
+    .nav-pills a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      padding: 6px 15px;
+      border-radius: 100px;
+      transition: all .2s;
+    }
+
+    .nav-pills a:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .nav-pills .nav-active {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-nav-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 0.5px solid var(--border2);
+      border-radius: 100px;
+      padding: 8px 18px;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .2s;
+    }
+
+    .btn-nav-ghost:hover {
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+
+    .btn-nav-cta {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 100px;
+      padding: 9px 22px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .btn-nav-cta:hover {
+      background: var(--accent2);
+    }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 55% 50% at 65% 35%, rgba(123, 110, 246, 0.14) 0%, transparent 60%),
+        radial-gradient(ellipse 45% 40% at 25% 70%, rgba(77, 184, 255, 0.07) 0%, transparent 55%),
+        radial-gradient(ellipse 80% 70% at 50% 50%, rgba(18, 16, 30, 0.95) 0%, var(--bg) 75%);
+    }
+
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      opacity: 0.035;
+      background-image: linear-gradient(rgba(255, 255, 255, .7) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .7) 1px, transparent 1px);
+      background-size: 72px 72px;
+    }
+
+    .hero-noise {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 180px;
+    }
+
+    .pnode {
+      position: absolute;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      animation: floatNode 7s ease-in-out infinite;
+    }
+
+    .pnode-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 20%;
+      background: rgba(123, 110, 246, 0.08);
+      border: 0.5px solid rgba(123, 110, 246, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+
+    .pnode-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .pnode-name {
+      font-family: var(--serif);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      margin-top: 8px;
+    }
+
+    .pnode-val {
+      font-size: 11px;
+      color: var(--faint);
+      margin-top: 2px;
+    }
+
+    .hero-line {
+      position: absolute;
+      z-index: 1;
+      height: 0.5px;
+      background: linear-gradient(90deg, transparent, rgba(123, 110, 246, 0.18), transparent);
+      transform-origin: left center;
+    }
+
+    @keyframes floatNode {
+
+      0%,
+      100% {
+        transform: translateY(0)
+      }
+
+      50% {
+        transform: translateY(-9px)
+      }
+    }
+
+    .hero-main {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 130px 40px 70px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(123, 110, 246, 0.08);
+      border: 0.5px solid rgba(123, 110, 246, 0.28);
+      border-radius: 100px;
+      padding: 7px 18px;
+      font-size: 12.5px;
+      color: var(--accent2);
+      margin-bottom: 38px;
+      backdrop-filter: blur(10px);
+      letter-spacing: 0.2px;
+      animation: fadeUp .7s .1s both;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2.5s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: .4;
+        transform: scale(.7)
+      }
+    }
+
+    .hero-headline {
+      font-family: var(--serif);
+      font-size: clamp(54px, 7.5vw, 96px);
+      font-weight: 700;
+      line-height: 1.0;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      max-width: 960px;
+      animation: fadeUp .7s .2s both;
+      margin-bottom: 10px;
+    }
+
+    .hero-headline em {
+      font-style: italic;
+      font-weight: 300;
+      color: var(--accent2);
+    }
+
+    .hero-headline .hl-light {
+      font-weight: 300;
+      color: rgba(238, 237, 245, 0.3);
+    }
+
+    .hero-sub {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 500px;
+      line-height: 1.75;
+      animation: fadeUp .7s .3s both;
+      margin-bottom: 46px;
+      font-weight: 300;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      animation: fadeUp .7s .4s both;
+      margin-bottom: 64px;
+    }
+
+    .btn-primary-hero {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 100px;
+      padding: 14px 32px;
+      font-size: 14.5px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all .22s;
+      box-shadow: 0 0 32px rgba(123, 110, 246, 0.25);
+    }
+
+    .btn-primary-hero:hover {
+      background: var(--accent2);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 40px rgba(123, 110, 246, 0.35);
+    }
+
+    .btn-ghost-hero {
+      background: transparent;
+      color: var(--text);
+      border: 0.5px solid var(--border2);
+      border-radius: 100px;
+      padding: 14px 28px;
+      font-size: 14.5px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .22s;
+    }
+
+    .btn-ghost-hero:hover {
+      background: var(--surface);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .hero-stats-bar {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.03);
+      border: 0.5px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      backdrop-filter: blur(20px);
+      animation: fadeUp .7s .5s both;
+    }
+
+    .hstat {
+      padding: 18px 34px;
+      border-right: 0.5px solid var(--border);
+      text-align: center;
+    }
+
+    .hstat:last-child {
+      border-right: none;
+    }
+
+    .hstat-num {
+      font-family: var(--serif);
+      font-size: 26px;
+      font-weight: 500;
+      color: var(--text);
+      display: block;
+    }
+
+    .hstat-label {
+      font-size: 11px;
+      color: var(--faint);
+      display: block;
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 28px;
+      left: 40px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--faint);
+      font-size: 11.5px;
+      letter-spacing: .5px;
+    }
+
+    .scroll-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 0.5px solid var(--border2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .corner-label {
+      position: absolute;
+      bottom: 28px;
+      right: 40px;
+      z-index: 10;
+      text-align: right;
+    }
+
+    .corner-label span {
+      display: block;
+      font-family: var(--serif);
+      font-size: 13px;
+      font-style: italic;
+      color: var(--muted);
+    }
+
+    .corner-label-line {
+      width: 36px;
+      height: 1.5px;
+      background: var(--accent);
+      border-radius: 2px;
+      margin-left: auto;
+      margin-top: 7px;
+    }
+
+    .hero-play {
+      position: absolute;
+      top: 44%;
+      left: 50%;
+      transform: translate(-50%, -90px);
+      z-index: 10;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 0.5px solid var(--border2);
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text);
+      font-size: 16px;
+      transition: background .2s;
+    }
+
+    .hero-play:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .hero-link-badge {
+      position: absolute;
+      top: 86px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(123, 110, 246, 0.09);
+      border: 0.5px solid rgba(123, 110, 246, 0.22);
+      border-radius: 100px;
+      padding: 7px 18px;
+      font-size: 12.5px;
+      color: var(--accent2);
+      text-decoration: none;
+      backdrop-filter: blur(10px);
+      transition: background .2s;
+      white-space: nowrap;
+    }
+
+    .hero-link-badge:hover {
+      background: rgba(123, 110, 246, 0.16);
+    }
+
+    .hero-link-badge img {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    /* TICKER */
+    .ticker-wrap {
+      border-top: 0.5px solid var(--border);
+      border-bottom: 0.5px solid var(--border);
+      padding: 13px 0;
+      overflow: hidden;
+      background: var(--bg2);
+    }
+
+    .ticker-track {
+      display: flex;
+      gap: 44px;
+      width: max-content;
+      animation: ticker 32s linear infinite;
+      align-items: center;
+    }
+
+    @keyframes ticker {
+      from {
+        transform: translateX(0)
+      }
+
+      to {
+        transform: translateX(-50%)
+      }
+    }
+
+    .ticker-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--border2);
+    }
+
+    .ticker-name {
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    .ticker-brand {
+      font-family: var(--serif);
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(238, 237, 245, 0.38);
+    }
+
+    /* LAYOUT */
+    section {
+      padding: 120px 40px;
+    }
+
+    .container {
+      max-width: 1160px;
+      margin: 0 auto;
+    }
+
+    .section-eyebrow {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: var(--accent);
+      margin-bottom: 18px;
+      font-weight: 500;
+    }
+
+    .section-title {
+      font-family: var(--serif);
+      font-size: clamp(36px, 4.2vw, 56px);
+      font-weight: 600;
+      line-height: 1.08;
+      color: var(--text);
+      margin-bottom: 18px;
+    }
+
+    .section-title .t-muted {
+      color: rgba(238, 237, 245, 0.28);
+      font-style: italic;
+      font-weight: 300;
+    }
+
+    .section-title em {
+      font-style: italic;
+      color: var(--accent2);
+    }
+
+    .section-desc {
+      font-size: 15.5px;
+      color: var(--muted);
+      max-width: 460px;
+      line-height: 1.75;
+      font-weight: 300;
+    }
+
+    .lux-div {
+      border: none;
+      border-top: 0.5px solid var(--border);
+      margin: 0;
+    }
+
+    /* FEATURES */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 0.5px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      margin-top: 60px;
+    }
+
+    .feat-hero-card {
+      grid-column: span 2;
+    }
+
+    .feat-card {
+      background: var(--bg);
+      padding: 38px 36px;
+      position: relative;
+      overflow: hidden;
+      transition: background .3s;
+    }
+
+    .feat-card:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .feat-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .feat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: 0.5px solid var(--border2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .feat-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .feat-tag {
+      font-size: 11px;
+      background: rgba(123, 110, 246, 0.08);
+      border: 0.5px solid rgba(123, 110, 246, 0.2);
+      border-radius: 100px;
+      padding: 4px 12px;
+      color: var(--accent2);
+    }
+
+    .feat-title {
+      font-family: var(--serif);
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .feat-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-weight: 300;
+    }
+
+    .feat-sprites {
+      display: flex;
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .feat-sprites img {
+      width: 54px;
+      height: 54px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .45));
+      transition: transform .3s;
+    }
+
+    .feat-sprites img:hover {
+      transform: translateY(-5px) scale(1.1);
+    }
+
+    .feat-accent-line {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1.5px;
+    }
+
+    /* STEPS */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 0.5px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      margin-top: 56px;
+    }
+
+    .step {
+      background: var(--bg);
+      padding: 38px 30px;
+    }
+
+    .step-num {
+      font-family: var(--serif);
+      font-size: 52px;
+      font-weight: 300;
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.05);
+      line-height: 1;
+      margin-bottom: 18px;
+    }
+
+    .step-title {
+      font-family: var(--serif);
+      font-size: 19px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 9px;
+    }
+
+    .step-desc {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.65;
+      font-weight: 300;
+    }
+
+    .step-code {
+      display: inline-block;
+      background: rgba(123, 110, 246, 0.1);
+      border: 0.5px solid rgba(123, 110, 246, 0.25);
+      border-radius: 6px;
+      padding: 2px 9px;
+      font-size: 12px;
+      font-family: monospace;
+      color: var(--accent2);
+      margin-top: 10px;
+    }
+
+    /* COMMANDS */
+    .cmd-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 0.5px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      margin-top: 56px;
+    }
+
+    .cmd-cat {
+      background: var(--bg);
+      padding: 30px;
+    }
+
+    .cmd-cat-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .cmd-cat-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 0.5px solid var(--border2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .cmd-cat-name {
+      font-family: var(--serif);
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .cmd-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .cmd-item:last-child {
+      border-bottom: none;
+    }
+
+    .cmd-item code {
+      font-size: 11.5px;
+      font-family: monospace;
+      color: var(--accent2);
+      background: rgba(123, 110, 246, 0.08);
+      border: 0.5px solid rgba(123, 110, 246, 0.18);
+      border-radius: 5px;
+      padding: 3px 8px;
+      white-space: nowrap;
+    }
+
+    .cmd-item span {
+      font-size: 12.5px;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    /* SYSTEMS */
+    .sys-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      padding: 72px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .sys-row:last-child {
+      border-bottom: none;
+    }
+
+    .sys-row.rev {
+      direction: rtl;
+    }
+
+    .sys-row.rev>* {
+      direction: ltr;
+    }
+
+    .sys-title {
+      font-family: var(--serif);
+      font-size: 34px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+
+    .sys-desc {
+      font-size: 14.5px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 22px;
+      font-weight: 300;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      font-size: 11.5px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 0.5px solid var(--border2);
+      border-radius: 100px;
+      padding: 5px 14px;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    .sys-visual {
+      position: relative;
+      height: 220px;
+    }
+
+    .sys-sprite {
+      position: absolute;
+      transition: transform .4s;
+    }
+
+    .sys-sprite img {
+      width: 76px;
+      height: 76px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 20px rgba(123, 110, 246, 0.25));
+    }
+
+    .sys-sprite:hover img {
+      transform: scale(1.1) translateY(-5px);
+    }
+
+    /* MINI */
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 0.5px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      margin-top: 56px;
+    }
+
+    .mini-card {
+      background: var(--bg);
+      padding: 30px 26px;
+    }
+
+    .mini-n {
+      font-size: 10.5px;
+      color: var(--faint);
+      letter-spacing: 2px;
+      font-weight: 500;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .mini-title {
+      font-family: var(--serif);
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 7px;
+    }
+
+    .mini-desc {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    /* BATTLE */
+    .battle-mockup {
+      background: var(--bg3);
+      border: 0.5px solid var(--border);
+      border-radius: 18px;
+      padding: 36px;
+      margin-top: 56px;
+    }
+
+    .battle-field {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 28px;
+      gap: 20px;
+    }
+
+    .battle-side {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .battle-sprite-wrap {
+      width: 96px;
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .battle-sprite-wrap img {
+      width: 88px;
+      height: 88px;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 20px rgba(123, 110, 246, 0.3));
+    }
+
+    .battle-hud {
+      background: rgba(255, 255, 255, 0.04);
+      border: 0.5px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      min-width: 165px;
+    }
+
+    .hud-name {
+      font-family: var(--serif);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .hud-name span {
+      color: var(--muted);
+      font-weight: 300;
+      font-size: 13px;
+    }
+
+    .hp-track {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 100px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .hp-fill {
+      height: 100%;
+      border-radius: 100px;
+      background: linear-gradient(90deg, #5cd67a, #3de870);
+    }
+
+    .hp-fill.low {
+      background: linear-gradient(90deg, #ff6b47, #ff8a68);
+    }
+
+    .hp-text {
+      font-size: 11px;
+      color: var(--faint);
+    }
+
+    .vs-badge {
+      font-family: var(--serif);
+      font-size: 28px;
+      font-weight: 300;
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.07);
+    }
+
+    .move-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .move-btn {
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 0.5px solid var(--border2);
+      background: rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+      font-family: var(--serif);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      transition: background .2s;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .move-btn:hover {
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .type-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* NEW BATTLE */
+    .battle-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 60px;
+  margin-top: 60px;
+  align-items: center;
+}
+
+/* VISUAL */
+.battle-visual {
+  background: var(--bg3);
+  border: 0.5px solid var(--border);
+  border-radius: 20px;
+  padding: 30px;
+}
+
+/* FIELD */
+.battle-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.battle-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+@keyframes floatSprite { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+.battle-sprite {
+  width: 120px;
+  filter: drop-shadow(0 8px 20px rgba(123,110,246,0.35));
+  animation: floatSprite 3s ease-in-out infinite;
+  transform: scaleY(-1);
+}
+
+.battle-sprite.flipped {
+  transform: scaleX(-1) scaleY(-1);
+}
+
+/* FX GLOW */
+.battle-fx {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(circle, rgba(255,150,100,0.25), transparent);
+  border-radius: 50%;
+  left: 50%;
+  transform: translateX(-50%);
+  filter: blur(20px);
+}
+
+/* HUD */
+.battle-hud-bar {
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  min-width: 150px;
+}
+
+.hp-bar {
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 6px 0;
+}
+
+.hp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #5cd67a, #3de870);
+}
+
+.hp-fill--low {
+  background: linear-gradient(90deg, #ff6b47, #ff8a68);
+}
+
+/* MOVES */
+.battle-moves {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.battle-move {
+  padding: 12px;
+  border-radius: 10px;
+  border: 0.5px solid var(--border);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  font-family: var(--serif);
+  cursor: pointer;
+}
+
+/* FEATURES */
+.battle-features {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.battle-feature {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.battle-feature h4 {
+  font-weight: 1000;
+  margin-bottom: 4px;
+}
+
+.bf-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: 
+color-mix(in srgb, var(--c) 10%, transparent);
+    color: var(--c);
+}
+
+/* MOBILE */
+@media (max-width: 900px) {
+  .battle-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+    /* FAQ */
+    .faq-list {
+      max-width: 700px;
+      margin: 56px auto 0;
+    }
+
+    details.faq {
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    details.faq summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      cursor: pointer;
+      list-style: none;
+      color: var(--text);
+      font-family: var(--serif);
+      font-size: 17px;
+      font-weight: 500;
+    }
+
+    details.faq summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.faq summary .faq-arrow {
+      font-size: 20px;
+      color: var(--faint);
+      transition: transform .3s;
+      font-family: var(--sans);
+    }
+
+    details.faq[open] summary .faq-arrow {
+      transform: rotate(45deg);
+    }
+
+    details.faq .faq-body {
+      padding: 0 0 20px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.78;
+      font-weight: 300;
+    }
+
+    /* WHY */
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 0.5px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      margin-top: 56px;
+    }
+
+    .why-card {
+      background: var(--bg);
+      padding: 46px 38px;
+    }
+
+    .why-num {
+      font-family: var(--serif);
+      font-size: 56px;
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1;
+      margin-bottom: 18px;
+    }
+
+    .why-title {
+      font-family: var(--serif);
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 9px;
+    }
+
+    .why-desc {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.72;
+      font-weight: 300;
+    }
+
+    /* CTA */
+    .cta-final {
+      position: relative;
+      text-align: center;
+      padding: 160px 40px;
+      overflow: hidden;
+      background: radial-gradient(ellipse 65% 55% at 50% 50%, rgba(123, 110, 246, 0.12) 0%, transparent 60%);
+    }
+
+    .cta-title {
+      font-family: var(--serif);
+      font-size: clamp(42px, 5vw, 68px);
+      font-weight: 700;
+      line-height: 1.08;
+      color: var(--text);
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta-title em {
+      font-style: italic;
+      color: var(--accent2);
+    }
+
+    .cta-sub {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 460px;
+      margin: 0 auto 44px;
+      line-height: 1.75;
+      position: relative;
+      z-index: 1;
+      font-weight: 300;
+    }
+
+    .cta-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--bg2);
+      border-top: 0.5px solid var(--border);
+      padding: 44px 40px;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1160px;
+      margin: 0 auto 28px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .footer-brand img {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid rgba(123, 110, 246, 0.3);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 26px;
+    }
+
+    .footer-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 300;
+      transition: color .2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--text);
+    }
+
+    .footer-copy {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding-top: 22px;
+      border-top: 0.5px solid var(--border);
+      color: var(--faint);
+      font-size: 12px;
+      line-height: 1.75;
+      font-weight: 300;
+    }
+
+    @media (max-width: 900px) {
+      nav {
+        padding: 14px 20px;
+      }
+
+      .nav-pills,
+      .btn-nav-ghost {
+        display: none;
+      }
+
+      section {
+        padding: 80px 20px;
+      }
+
+      .hero-main {
+        padding: 110px 20px 56px;
+      }
+
+      .features-grid,
+      .cmd-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .feat-hero-card {
+        grid-column: span 1;
+      }
+
+      .steps-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .sys-row {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+
+      .sys-row.rev {
+        direction: ltr;
+      }
+
+      .why-grid,
+      .mini-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hero-stats-bar {
+        flex-wrap: wrap;
+      }
+
+      .hstat {
+        flex: 1;
+        min-width: 110px;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        gap: 22px;
+        text-align: center;
+      }
+
+      .footer-links {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .pnode {
+        display: none;
+      }
+
+      .hero-link-badge {
+        top: 80px;
+        font-size: 11.5px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <a href="#" class="nav-logo">
+      <img
+        src="https://dbl-discord.usercontent.prism.gg/avatars/519850436899897346/cdf16d0cfe9acf66f1a920698be7763a.png?size=256"
+        alt="Mewbot" class="nav-logo-img">
+      mewbot
+    </a>
+    <div class="nav-pills">
+      <a href="#" class="nav-active">Home</a>
+      <a href="#features">Features</a>
+      <a href="#commands">Commands</a>
+      <a href="#how-to-play">Get Started</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://discord.gg/mewbot" target="_blank" rel="noopener">Community ↗</a>
+    </div>
+    <div class="nav-right">
+      <a href="https://discord.gg/mewbot" target="_blank" rel="noopener" class="btn-nav-ghost">Join Community</a>
+      <a href="https://discord.com/oauth2/authorize?client_id=519850436899897346&scope=bot+applications.commands&permissions=388160"
+        target="_blank" rel="noopener" class="btn-nav-cta">
+        <svg width="16" height="13" viewBox="0 0 71 55" fill="none">
+          <path
+            d="M60.1 4.9A58.5 58.5 0 0045.4.2a.2.2 0 00-.2.1 40.8 40.8 0 00-1.8 3.7 54 54 0 00-16.2 0A37.4 37.4 0 0025.4.3a.2.2 0 00-.2-.1A58.4 58.4 0 0010.5 4.9a.2.2 0 00-.1.1C1.5 18.7-.9 32.2.3 45.5v.2a58.9 58.9 0 0017.7 9 .2.2 0 00.3-.1 42.2 42.2 0 003.6-5.9.2.2 0 00-.1-.3 38.8 38.8 0 01-5.5-2.7.2.2 0 01 0-.4l1.1-.9a.2.2 0 01.2 0 42 42 0 0035.6 0 .2.2 0 01.2 0l1.1.9a.2.2 0 010 .4c-1.8 1-3.6 1.9-5.6 2.7a.2.2 0 00-.1.3 47.4 47.4 0 003.7 5.9.2.2 0 00.2.1 58.7 58.7 0 0017.7-9 .2.2 0 00.1-.2c1.4-15.1-2.4-28.2-10.1-39.8a.2.2 0 00-.1-.1zM23.7 37.3c-3.4 0-6.3-3.2-6.3-7s2.8-7 6.3-7 6.4 3.1 6.3 7-2.8 7-6.3 7zm23.2 0c-3.4 0-6.3-3.2-6.3-7s2.8-7 6.3-7 6.4 3.1 6.3 7-2.8 7-6.3 7z"
+            fill="currentColor" />
+        </svg>
+        Add to Discord
+      </a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-noise"></div>
+
+    <div class="pnode" style="left:7%;top:30%;animation-delay:0s">
+      <div class="pnode-icon"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png"
+          alt="Charizard"></div>
+      <div class="pnode-name">Charizard</div>
+      <div class="pnode-val">6,840 caught</div>
+    </div>
+    <div class="hero-line" style="left:11.5%;top:46%;width:21%;transform:rotate(20deg)"></div>
+    <div class="pnode" style="right:8%;top:25%;animation-delay:1.8s">
+      <div class="pnode-icon"><img
+          src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png" alt="Mewtwo"></div>
+      <div class="pnode-name">Mewtwo</div>
+      <div class="pnode-val">2,190 caught</div>
+    </div>
+    <div class="pnode" style="left:13%;top:63%;animation-delay:1s">
+      <div class="pnode-icon"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png"
+          alt="Pikachu"></div>
+      <div class="pnode-name">Pikachu</div>
+      <div class="pnode-val">18,240 caught</div>
+    </div>
+    <div class="hero-line" style="right:11%;top:57%;width:18%;transform:rotate(-12deg)"></div>
+    <div class="pnode" style="right:9.5%;top:60%;animation-delay:2.3s">
+      <div class="pnode-icon"><img
+          src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png" alt="Mew"></div>
+      <div class="pnode-name">Mew</div>
+      <div class="pnode-val">440 caught</div>
+    </div>
+    <div
+      style="position:absolute;bottom:90px;left:50%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:5px;opacity:0.13;pointer-events:none">
+      <div style="width:3px;height:38px;background:var(--accent);border-radius:2px 2px 0 0"></div>
+      <div style="width:3px;height:64px;background:var(--accent);border-radius:2px 2px 0 0"></div>
+      <div style="width:3px;height:50px;background:var(--accent);border-radius:2px 2px 0 0"></div>
+      <div style="width:3px;height:82px;background:var(--accent);border-radius:2px 2px 0 0"></div>
+      <div style="width:3px;height:60px;background:var(--accent);border-radius:2px 2px 0 0"></div>
+    </div>
+
+    <!-- <div class="hero-play">▶</div> -->
+
+    <a href="https://discord.com/oauth2/authorize?client_id=519850436899897346&scope=bot+applications.commands&permissions=388160"
+      target="_blank" rel="noopener" class="hero-link-badge">
+      <img
+        src="https://dbl-discord.usercontent.prism.gg/avatars/519850436899897346/cdf16d0cfe9acf66f1a920698be7763a.png?size=256"
+        alt="Mewbot">
+      Start Your Pokemon Journey →
+    </a>
+
+    <div class="hero-main">
+      <div class="hero-badge">
+        <div class="badge-dot"></div>
+        Live on 63,000+ Discord servers
+      </div>
+      <h1 class="hero-headline">
+        One-click for<br><em>Pokemon</em> <span class="hl-light">Adventure</span>
+      </h1>
+      <p class="hero-sub">Catch wild Pokemon, build your dream team, battle trainers, and trade with friends — all
+        inside Discord.</p>
+      <div class="hero-actions">
+        <a href="https://discord.com/oauth2/authorize?client_id=519850436899897346&scope=bot+applications.commands&permissions=388160"
+          class="btn-primary-hero" target="_blank" rel="noopener">
+          <svg width="17" height="13" viewBox="0 0 71 55" fill="none">
+            <path
+              d="M60.1 4.9A58.5 58.5 0 0045.4.2a.2.2 0 00-.2.1 40.8 40.8 0 00-1.8 3.7 54 54 0 00-16.2 0A37.4 37.4 0 0025.4.3a.2.2 0 00-.2-.1A58.4 58.4 0 0010.5 4.9a.2.2 0 00-.1.1C1.5 18.7-.9 32.2.3 45.5v.2a58.9 58.9 0 0017.7 9 .2.2 0 00.3-.1 42.2 42.2 0 003.6-5.9.2.2 0 00-.1-.3 38.8 38.8 0 01-5.5-2.7.2.2 0 01 0-.4l1.1-.9a.2.2 0 01.2 0 42 42 0 0035.6 0 .2.2 0 01.2 0l1.1.9a.2.2 0 010 .4c-1.8 1-3.6 1.9-5.6 2.7a.2.2 0 00-.1.3 47.4 47.4 0 003.7 5.9.2.2 0 00.2.1 58.7 58.7 0 0017.7-9 .2.2 0 00.1-.2c1.4-15.1-2.4-28.2-10.1-39.8a.2.2 0 00-.1-.1zM23.7 37.3c-3.4 0-6.3-3.2-6.3-7s2.8-7 6.3-7 6.4 3.1 6.3 7-2.8 7-6.3 7zm23.2 0c-3.4 0-6.3-3.2-6.3-7s2.8-7 6.3-7 6.4 3.1 6.3 7-2.8 7-6.3 7z"
+              fill="currentColor" />
+          </svg>
+          Open App
+        </a>
+        <a href="#features" class="btn-ghost-hero">Discover More</a>
+      </div>
+      <div class="hero-stats-bar">
+        <div class="hstat"><span class="hstat-num">1,025</span><span class="hstat-label">Pokemon</span></div>
+        <div class="hstat"><span class="hstat-num">900</span><span class="hstat-label">Moves</span></div>
+        <div class="hstat"><span class="hstat-num">63K+</span><span class="hstat-label">Servers</span></div>
+        <div class="hstat"><span class="hstat-num">3.98★</span><span class="hstat-label">Rating</span></div>
+        <div class="hstat"><span class="hstat-num">2,380+</span><span class="hstat-label">Votes</span></div>
+      </div>
+    </div>
+
+    <div class="scroll-hint">
+      <div class="scroll-circle">↓</div>01/06 · Scroll down
+    </div>
+    <div class="corner-label"><span>Pokemon horizons</span>
+      <div class="corner-label-line"></div>
+    </div>
+  </section>
+
+  <div class="ticker-wrap">
+    <div class="ticker-track">
+      <span class="ticker-brand">Pokémon</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-name">Pikachu</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-brand">Discord</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-name">Mewtwo</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-brand">Mewbot</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-name">Charizard</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-brand">Competitive</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-name">Garchomp</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-brand">Shinies</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-name">Lucario</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-brand">Breeding</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-name">Greninja</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-brand">Pokémon</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-name">Pikachu</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-brand">Discord</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-name">Mewtwo</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-brand">Mewbot</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-name">Charizard</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-brand">Competitive</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-name">Garchomp</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-brand">Shinies</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-name">Lucario</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-brand">Breeding</span>
+      <div class="ticker-dot"></div>
+      <span class="ticker-name">Greninja</span>
+      <div class="ticker-dot"></div>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="container">
+      <p class="section-eyebrow">Features</p>
+      <h2 class="section-title">A complete Pokemon world<br><span class="t-muted">inside Discord.</span></h2>
+      <p class="section-desc">Every system you loved from the games, rebuilt for multiplayer Discord gameplay.</p>
+      <div class="features-grid">
+        <div class="feat-card feat-hero-card">
+          <div class="feat-card-header">
+            <div class="feat-icon" style="background:rgba(255,107,71,0.1);border-color:rgba(255,107,71,0.22)"><svg
+                viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" version="1.1" fill="none"
+                stroke=rgba(255,107,71,0.8) stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                style="color:rgba(255,107,71,0.8)">
+                <path d="m2.75 9.25 1.5 2.5 2 1.5m-4.5 0 1 1m1.5-2.5-1.5 1.5m3-1 8.5-8.5v-2h-2l-8.5 8.5" />
+                <path
+                  d="m10.25 12.25-2.25-2.25m2-2 2.25 2.25m1-1-1.5 2.5-2 1.5m4.5 0-1 1m-1.5-2.5 1.5 1.5m-7.25-5.25-4.25-4.25v-2h2l4.25 4.25" />
+              </svg></div><span class="feat-tag">Gen 7 Engine</span>
+          </div>
+          <div class="feat-title">Competitive Battles</div>
+          <div class="feat-desc">Full Gen 7 battle engine with abilities, held items, weather, terrain, status effects,
+            and priority moves. Challenge friends or climb the ladder.</div>
+          <div class="feat-sprites">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="Charizard">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/445.png" alt="Garchomp">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/384.png" alt="Rayquaza">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png" alt="Mewtwo">
+          </div>
+          <div class="feat-accent-line" style="background:linear-gradient(90deg,var(--fire),transparent)"></div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-card-header">
+            <div class="feat-icon" style="background:rgba(92,214,122,0.1);border-color:rgba(92,214,122,0.22)"><svg
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" style="color:rgba(92,214,122,0.8)">
+                <path d="M12 2l2 4h4l-3 3 1 4-4-2-4 2 1-4-3-3h4l2-4z" />
+                <path d="M5 18c-1-1-2-3-2-5" />
+                <path d="M19 18c1-1 2-3 2-5" />
+              </svg></div>
+          </div>
+          <div class="feat-title">Wild Encounters</div>
+          <div class="feat-desc">Pokemon spawn in your server channels. React fast to catch them before anyone else.
+          </div>
+          <div class="feat-accent-line" style="background:linear-gradient(90deg,var(--grass),transparent)"></div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-card-header">
+            <div class="feat-icon" style="background:rgba(77,184,255,0.1);border-color:rgba(77,184,255,0.22)"><svg
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" style="color:rgba(77,184,255,0.8)">
+                <path d="M6 9l6-6 6 6M6 15l6 6 6-6M12 3v18" />
+              </svg></div>
+          </div>
+          <div class="feat-title">P2P Trading</div>
+          <div class="feat-desc">Trade Pokemon with other trainers. Set up market listings or negotiate directly.</div>
+          <div class="feat-accent-line" style="background:linear-gradient(90deg,var(--water),transparent)"></div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-card-header">
+            <div class="feat-icon" style="background:rgba(255,200,68,0.1);border-color:rgba(255,200,68,0.22)"><svg
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" style="color:rgba(255,200,68,0.8)">
+                <path d="M12 2l3 7h7l-6 4 2 7-6-4-6 4 2-7-6-4h7l3-7z" />
+              </svg></div>
+          </div>
+          <div class="feat-title">Mega Evolution</div>
+          <div class="feat-desc">Mega Evolve in battle. Collect Mega Stones and unleash devastating power.</div>
+          <div class="feat-accent-line" style="background:linear-gradient(90deg,var(--electric),transparent)"></div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-card-header">
+            <div class="feat-icon" style="background:rgba(240,106,175,0.1);border-color:rgba(240,106,175,0.22)"><svg
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" style="color:rgba(240,106,175,0.8)">
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg></div>
+          </div>
+          <div class="feat-title">Breeding</div>
+          <div class="feat-desc">Breed for perfect IVs, egg moves, and hidden abilities. Hatch eggs as you play.</div>
+          <div class="feat-accent-line" style="background:linear-gradient(90deg,var(--psychic),transparent)"></div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-card-header">
+            <div class="feat-icon" style="background:rgba(123,110,246,0.12);border-color:rgba(123,110,246,0.28)"><svg
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" style="color:rgba(123,110,246,0.6)">
+                <path d="M12 2l8 10-8 10-8-10 8-10z" />
+                <path d="M12 6l5 6-5 6-5-6 5-6z" />
+              </svg></div>
+          </div>
+          <div class="feat-title">Z-Moves</div>
+          <div class="feat-desc">Unleash once-per-battle Z-Moves for massive damage. Collect Z-Crystals across your
+            journey.</div>
+          <div class="feat-accent-line" style="background:linear-gradient(90deg,var(--accent),transparent)"></div>
+        </div>
+        <div class="feat-card">
+  <div class="feat-card-header">
+    <div class="feat-icon" style="background:rgba(92,214,122,0.1);border-color:rgba(92,214,122,0.22)">
+      
+      <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="color:rgba(90, 221, 123, 0.8)">
+  <path d="M 16 3 C 13.794 3 12 4.794 12 7 C 12 7.7496708 12.219952 8.4426966 12.580078 9.0429688 C 10.573725 9.2562596 9 10.937904 9 13 C 9 14.184631 9.5269863 15.239658 10.347656 15.972656 C 10.221321 15.980221 10.09507 15.997777 9.96875 16.001953 C 9.64575 16.011953 9.3342031 16.011953 9.0332031 16.001953 L 8.078125 15.96875 L 8.0039062 16.921875 C 7.9539063 17.553875 7.76525 18.505891 7.15625 19.462891 C 6.72725 20.137891 6.1418906 20.72225 5.4628906 21.15625 L 4.7265625 21.626953 L 5.0917969 22.419922 C 5.6357969 23.596922 5.9419531 24.817828 6.0019531 26.048828 C 6.0179531 26.362828 6.0169531 26.664172 6.0019531 26.951172 L 5.9277344 28.466797 L 7.3496094 27.9375 C 8.8836094 27.3665 10.459156 27.052 12.035156 27 C 12.356156 26.989 12.66775 26.99 12.96875 27 L 13.923828 27.03125 L 13.998047 26.080078 C 14.048047 25.448078 14.236703 24.494109 14.845703 23.537109 C 15.274703 22.862109 15.860062 22.27775 16.539062 21.84375 L 17.339844 21.333984 L 16.871094 20.507812 C 16.404094 19.684812 16.108188 18.799953 15.992188 17.876953 C 15.938389 17.445069 15.938245 17.006552 15.964844 16.568359 C 16.025912 16.618495 16.111852 16.686129 16.230469 16.75 C 16.270469 16.77 16.299844 16.790547 16.339844 16.810547 C 16.499844 16.880547 16.569375 16.909922 16.609375 16.919922 L 16.650391 16.939453 C 18.390391 17.579453 20.180703 17.94 21.970703 18 L 22.130859 18 C 22.140859 18.01 22.140625 18.019297 22.140625 18.029297 C 22.330625 18.919297 22.680156 19.779063 23.160156 20.539062 C 23.590156 21.219062 24.139531 21.829844 24.769531 22.339844 C 24.359531 23.419844 24.109531 24.520859 24.019531 25.630859 C 22.709531 25.250859 21.369297 25.04 20.029297 25 L 19.869141 25 C 19.679141 24.1 19.329844 23.230938 18.839844 22.460938 C 18.793844 22.388938 18.730641 22.324906 18.681641 22.253906 L 17.34375 23.107422 C 17.24575 23.170422 17.133578 23.249797 17.017578 23.341797 C 17.063578 23.407797 17.115203 23.471062 17.158203 23.539062 C 17.768203 24.489062 17.948047 25.448125 17.998047 26.078125 L 18.078125 27.029297 L 19.029297 27 C 19.329297 26.99 19.650703 26.99 19.970703 27 C 21.540703 27.05 23.120391 27.369453 24.650391 27.939453 L 26.070312 28.470703 L 26 26.949219 C 25.98 26.659219 25.98 26.360781 26 26.050781 C 26.06 24.820781 26.360156 23.599922 26.910156 22.419922 L 27.269531 21.630859 L 26.539062 21.160156 C 25.859063 20.720156 25.269844 20.140938 24.839844 19.460938 C 24.229844 18.510938 24.05 17.549922 24 16.919922 L 23.919922 15.970703 L 22.970703 16 C 22.770703 16.01 22.559609 16.009766 22.349609 16.009766 C 22.239609 15.999766 22.139297 16 22.029297 16 C 21.903754 15.995897 21.777988 15.98012 21.652344 15.972656 C 22.473014 15.239658 23 14.184631 23 13 C 23 10.937904 21.426275 9.2562596 19.419922 9.0429688 C 19.780048 8.4426966 20 7.7496708 20 7 C 20 4.794 18.206 3 16 3 z"
+        fill="currentColor"/>
+</svg>
+
+    </div>
+  </div>
+  <div class="feat-title">Farming & Berries</div>
+  <div class="feat-desc">Plant berries in your farm, harvest them as you play, and use them to brew potions and stat boosters.</div>
+  <div class="feat-accent-line" style="background:linear-gradient(90deg,var(--grass),transparent)"></div>
+</div>
+
+
+<div class="feat-card">
+  <div class="feat-card-header">
+    <div class="feat-icon" style="background:rgba(255,150,50,0.1);border-color:rgba(255,150,50,0.22)">
+      
+      <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="color:rgba(255,150,50,0.8)">
+        <style>
+          .st0 {
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+          }
+        </style>
+        <circle class="st0" cx="22" cy="21" r="7"/>
+        <path class="st0" d="M17.3,15.8l-4.7-6.9c-0.8-1.2-2.4-1.2-3.2,0l-6,8.9C2.4,19.1,3.4,21,5,21h10"/>
+        <path class="st0" d="M15,12.4V7c0-1.1,0.9-2,2-2h8c1.1,0,2,0.9,2,2v8"/>
+      </svg>
+
+    </div>
+  </div>
+  <div class="feat-title">Minigames</div>
+  <div class="feat-desc">Fish for rare Pokemon, mine for gems and evolution stones, or engage in other interactive activities to earn rewards.</div>
+  <div class="feat-accent-line" style="background:linear-gradient(90deg,rgba(255,150,50,0.6),transparent)"></div>
+</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="lux-div">
+
+  <section id="battle" class="battle-section">
+  <div class="container">
+
+    <div>
+      <p class="section-eyebrow">Atelier</p>
+      <h2 class="section-title">
+        Real Pokemon battles.<br>
+        <span class="t-muted">Real strategy.</span>
+      </h2>
+      <p class="section-desc">
+        A faithful battle system with every mechanic you expect from competitive Pokemon.
+      </p>
+    </div>
+
+    <div class="battle-grid">
+
+      <!-- LEFT: BATTLE UI -->
+      <div class="battle-visual">
+        <div class="battle-field">
+
+          <!-- LEFT SIDE -->
+          <div class="battle-side battle-side--left">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/448.png" alt="Lucario" class="battle-sprite">
+
+            <div class="battle-hud-bar">
+              <div class="hud-name">Lucario <span>Lv.100</span></div>
+              <div class="hp-bar">
+                <div class="hp-fill" style="width:88%"></div>
+              </div>
+              <div class="hp-text">156 / 176</div>
+            </div>
+          </div>
+
+          <!-- FX CENTER -->
+          <div class="battle-fx"></div>
+
+          <!-- RIGHT SIDE -->
+          <div class="battle-side battle-side--right">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png" alt="Gengar" class="battle-sprite flipped">
+
+            <div class="battle-hud-bar">
+              <div class="hud-name">Gengar <span>Lv.100</span></div>
+              <div class="hp-bar">
+                <div class="hp-fill hp-fill--low" style="width:32%"></div>
+              </div>
+              <div class="hp-text">43 / 135</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- MOVES -->
+        <div class="battle-moves">
+          <button class="battle-move" data-type="fighting">Aura Sphere</button>
+          <button class="battle-move" data-type="steel">Flash Cannon</button>
+          <button class="battle-move" data-type="dark">Dark Pulse</button>
+          <button class="battle-move" data-type="normal">Extreme Speed</button>
+        </div>
+      </div>
+
+      <!-- RIGHT: FEATURES -->
+      <div class="battle-features">
+
+        <div class="battle-feature">
+          <div class="bf-icon" style="--c:var(--fire)">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+          </div>
+          <div>
+            <h4>Abilities & Items</h4>
+            <p>Every ability and held item from the mainline games. Intimidate, Levitate, Choice Band — it's all here.</p>
+          </div>
+        </div>
+
+        <div class="battle-feature">
+          <div class="bf-icon" style="--c:var(--electric)">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
+          </div>
+          <div>
+            <h4>Weather & Terrain</h4>
+            <p>Sun, rain, sand, hail, and all terrain types change the battlefield dynamically.</p>
+          </div>
+        </div>
+
+        <div class="battle-feature">
+          <div class="bf-icon" style="--c:var(--accent)">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <div>
+            <h4>Doubles Battles</h4>
+            <p>Tag-team with two Pokemon at once. Doubles adds a whole new layer of depth.</p>
+          </div>
+        </div>
+
+        <div class="battle-feature">
+          <div class="bf-icon" style="--c:var(--grass)">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"></path></svg>
+          </div>
+          <div>
+            <h4>EV Training</h4>
+            <p>Train effort values to min-max stats for competitive play.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</section>
+
+  <hr class="lux-div">
+
+  <section id="how-to-play">
+    <div class="container" style="text-align:center">
+      <p class="section-eyebrow">Get Started</p>
+      <h2 class="section-title" style="margin:0 auto">Playing is <em>dead simple.</em></h2>
+      <p class="section-desc" style="margin:18px auto 0">From zero to catching Pokemon in under a minute.</p>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div class="step-title">Invite Mewbot</div>
+          <div class="step-desc">Add Mewbot to your Discord server with one click. No setup needed.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div class="step-title">Pick a Starter</div>
+          <div class="step-desc">Choose your first partner Pokemon.</div>
+          <div class="step-code">/start</div>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div class="step-title">Catch 'em All</div>
+          <div class="step-desc">Wild Pokemon appear in chat. Type the name to catch them.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <div class="step-title">Battle & Trade</div>
+          <div class="step-desc">Challenge friends, trade rare finds, build the ultimate team.</div>
+        </div>
+      </div>
+      <div style="margin-top:44px"><a
+          href="https://discord.com/oauth2/authorize?client_id=519850436899897346&scope=bot+applications.commands&permissions=388160"
+          class="btn-primary-hero" target="_blank" rel="noopener" style="display:inline-flex"><svg width="17"
+            height="13" viewBox="0 0 71 55" fill="none">
+            <path
+              d="M60.1 4.9A58.5 58.5 0 0045.4.2a.2.2 0 00-.2.1 40.8 40.8 0 00-1.8 3.7 54 54 0 00-16.2 0A37.4 37.4 0 0025.4.3a.2.2 0 00-.2-.1A58.4 58.4 0 0010.5 4.9a.2.2 0 00-.1.1C1.5 18.7-.9 32.2.3 45.5v.2a58.9 58.9 0 0017.7 9 .2.2 0 00.3-.1 42.2 42.2 0 003.6-5.9.2.2 0 00-.1-.3 38.8 38.8 0 01-5.5-2.7.2.2 0 01 0-.4l1.1-.9a.2.2 0 01.2 0 42 42 0 0035.6 0 .2.2 0 01.2 0l1.1.9a.2.2 0 010 .4c-1.8 1-3.6 1.9-5.6 2.7a.2.2 0 00-.1.3 47.4 47.4 0 003.7 5.9.2.2 0 00.2.1 58.7 58.7 0 0017.7-9 .2.2 0 00.1-.2c1.4-15.1-2.4-28.2-10.1-39.8a.2.2 0 00-.1-.1zM23.7 37.3c-3.4 0-6.3-3.2-6.3-7s2.8-7 6.3-7 6.4 3.1 6.3 7-2.8 7-6.3 7zm23.2 0c-3.4 0-6.3-3.2-6.3-7s2.8-7 6.3-7 6.4 3.1 6.3 7-2.8 7-6.3 7z"
+              fill="currentColor" />
+          </svg>Start Your Adventure</a></div>
+    </div>
+  </section>
+
+  <hr class="lux-div">
+
+  <section id="systems">
+    <div class="container">
+      <p class="section-eyebrow">Systems</p>
+      <h2 class="section-title">Deep systems.<br><span class="t-muted">Endless replay.</span></h2>
+      <div class="sys-row" style="margin-top:56px">
+        <div>
+          <div class="sys-title">Breeding & Egg Moves</div>
+          <div class="sys-desc">Breed Pokemon to pass down perfect IVs, natures, and exclusive egg moves. Plan your
+            lineage, hatch eggs as you chat, and create Pokemon that can't be found in the wild.</div>
+          <div class="tags"><span class="tag">IV Inheritance</span><span class="tag">Egg Moves</span><span
+              class="tag">Hidden Abilities</span><span class="tag">Nature Passing</span></div>
+        </div>
+        <div class="sys-visual">
+          <div class="sys-sprite" style="left:0;top:20px"><img
+              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/282.png" alt="Gardevoir">
+          </div>
+          <div class="sys-sprite" style="left:90px;top:60px"><img
+              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/445.png" alt="Garchomp">
+          </div>
+          <div class="sys-sprite" style="left:170px;top:10px"><img
+              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/376.png" alt="Metagross">
+          </div>
+        </div>
+      </div>
+      <div class="sys-row rev">
+        <div>
+          <div class="sys-title">Market & Auctions</div>
+          <div class="sys-desc">List Pokemon on the global market, bid in live auctions, and snag rare finds. A full
+            player-driven economy built into Discord.</div>
+          <div class="tags"><span class="tag">Global Market</span><span class="tag">Live Auctions</span><span
+              class="tag">Price Tracking</span><span class="tag">Instant Trade</span></div>
+        </div>
+        <div class="sys-visual">
+          <div class="sys-sprite" style="left:0;top:20px"><img
+              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/248.png" alt="Tyranitar">
+          </div>
+          <div class="sys-sprite" style="left:90px;top:60px"><img
+              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/373.png" alt="Salamence">
+          </div>
+          <div class="sys-sprite" style="left:170px;top:10px"><img
+              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/658.png" alt="Greninja">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:0 40px 120px">
+    <div class="container">
+      <div class="mini-grid">
+        <div class="mini-card">
+          <div class="mini-n">01</div>
+          <div class="mini-title">Missions</div>
+          <div class="mini-desc">Daily challenges with escalating rewards.</div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-n">02</div>
+          <div class="mini-title">EV Training</div>
+          <div class="mini-desc">Fine-tune effort values for competitive play.</div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-n">03</div>
+          <div class="mini-title">Forms & Variants</div>
+          <div class="mini-desc">Regional, Alolan, Hisuian, and more.</div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-n">04</div>
+          <div class="mini-title">Game Corner</div>
+          <div class="mini-desc">Slots, lucky draws, and mini-games.</div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-n">05</div>
+          <div class="mini-title">Achievements</div>
+          <div class="mini-desc">Track milestones and prove your mastery.</div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-n">06</div>
+          <div class="mini-title">Seasonal Events</div>
+          <div class="mini-desc">Halloween, Christmas, Easter exclusives.</div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-n">07</div>
+          <div class="mini-title">Fishing</div>
+          <div class="mini-desc">Cast for rare water Pokemon. Level up rods.</div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-n">08</div>
+          <div class="mini-title">Radiant Forms</div>
+          <div class="mini-desc">Custom skins and ultra-rare radiant variants.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="lux-div">
+
+  <section id="commands">
+    <div class="container" style="text-align:center">
+      <p class="section-eyebrow">Commands</p>
+      <h2 class="section-title" style="margin:0 auto">Everything at<br><span class="t-muted">your fingertips.</span>
+      </h2>
+      <p class="section-desc" style="margin:18px auto 0">Slash commands make it effortless. Here are the essentials.</p>
+      <div class="cmd-grid">
+        <div class="cmd-cat">
+          <div class="cmd-cat-title">
+            <div class="cmd-cat-icon" style="background:rgba(92,214,122,0.1)">🌿</div>
+            <div class="cmd-cat-name">Catching</div>
+          </div>
+          <div class="cmd-item"><code>/start</code><span>Choose your starter Pokemon</span></div>
+          <div class="cmd-item"><code>/catch</code><span>Catch a wild spawn</span></div>
+          <div class="cmd-item"><code>/select</code><span>Set your active Pokemon</span></div>
+          <div class="cmd-item"><code>/pokedex</code><span>Track your collection</span></div>
+        </div>
+        <div class="cmd-cat">
+          <div class="cmd-cat-title">
+            <div class="cmd-cat-icon" style="background:rgba(255,107,71,0.1)">⚔️</div>
+            <div class="cmd-cat-name">Battling</div>
+          </div>
+          <div class="cmd-item"><code>/duel user</code><span>Challenge another trainer</span></div>
+          <div class="cmd-item"><code>/duel npc</code><span>Fight an NPC trainer</span></div>
+          <div class="cmd-item"><code>/duel gym</code><span>Challenge a gym leader</span></div>
+          <div class="cmd-item"><code>/moves learn</code><span>Teach new moves</span></div>
+        </div>
+        <div class="cmd-cat">
+          <div class="cmd-cat-title">
+            <div class="cmd-cat-icon" style="background:rgba(77,184,255,0.1)">🔄</div>
+            <div class="cmd-cat-name">Trading</div>
+          </div>
+          <div class="cmd-item"><code>/trade</code><span>Start a trade with a user</span></div>
+          <div class="cmd-item"><code>/market add</code><span>List Pokemon for sale</span></div>
+          <div class="cmd-item"><code>/market buy</code><span>Buy from the market</span></div>
+          <div class="cmd-item"><code>/gift</code><span>Gift credits or Pokemon</span></div>
+        </div>
+        <div class="cmd-cat">
+          <div class="cmd-cat-title">
+            <div class="cmd-cat-icon" style="background:rgba(240,106,175,0.1)">🥚</div>
+            <div class="cmd-cat-name">Breeding</div>
+          </div>
+          <div class="cmd-item"><code>/breed</code><span>Breed two Pokemon</span></div>
+          <div class="cmd-item"><code>/breedswith</code><span>Check compatibility</span></div>
+          <div class="cmd-item"><code>/incubate</code><span>Hatch eggs faster</span></div>
+          <div class="cmd-item"><code>/form</code><span>Change Pokemon forms</span></div>
+        </div>
+        <div class="cmd-cat">
+          <div class="cmd-cat-title">
+            <div class="cmd-cat-icon" style="background:rgba(255,200,68,0.1)">🎯</div>
+            <div class="cmd-cat-name">Activities</div>
+          </div>
+          <div class="cmd-item"><code>/mg fish</code><span>Fishing minigame</span></div>
+          <div class="cmd-item"><code>/mg mine</code><span>Mining minigame</span></div>
+          <div class="cmd-item"><code>/farm</code><span>Plant & harvest berries</span></div>
+          <div class="cmd-item"><code>/missions</code><span>Daily challenges</span></div>
+        </div>
+        <div class="cmd-cat">
+          <div class="cmd-cat-title">
+            <div class="cmd-cat-icon" style="background:rgba(123,110,246,0.1)">👤</div>
+            <div class="cmd-cat-name">Profile</div>
+          </div>
+          <div class="cmd-item"><code>/profile</code><span>View your trainer card</span></div>
+          <div class="cmd-item"><code>/achieve</code><span>Track achievements</span></div>
+          <div class="cmd-item"><code>/bag</code><span>View your items</span></div>
+          <div class="cmd-item"><code>/shop</code><span>Buy items & upgrades</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="lux-div">
+
+  <section>
+    <div class="container" style="text-align:center">
+      <p class="section-eyebrow">Heritage</p>
+      <h2 class="section-title" style="margin:0 auto">Trainers <em>don't leave.</em></h2>
+      <p class="section-desc" style="margin:18px auto 0">Once they start, they stay. Here's why.</p>
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-num" style="color:var(--accent2)">1,025+</div>
+          <div class="why-title">Pokemon to Collect</div>
+          <div class="why-desc">Every generation. Every form. Shinies, megas, legendaries, and custom radiants.</div>
+        </div>
+        <div class="why-card">
+          <div class="why-num" style="color:var(--electric)">24/7</div>
+          <div class="why-title">Always Online</div>
+          <div class="why-desc">Mewbot never sleeps. Your journey continues around the clock.</div>
+        </div>
+        <div class="why-card">
+          <div class="why-num" style="color:var(--water)">0</div>
+          <div class="why-title">Setup Required</div>
+          <div class="why-desc">Invite and play. No configuration. No permissions headache. It just works.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="lux-div">
+
+  <section id="faq">
+    <div class="container" style="text-align:center">
+      <p class="section-eyebrow">Questions</p>
+      <h2 class="section-title" style="margin:0 auto">Frequently asked.</h2>
+      <div class="faq-list">
+        <details class="faq">
+          <summary>Is Mewbot free to use? <span class="faq-arrow">+</span></summary>
+          <div class="faq-body">Yes. All core features — catching, battling, breeding, trading, and more — are
+            completely free. There are optional cosmetic items available but nothing pay-to-win.</div>
+        </details>
+        <details class="faq">
+          <summary>How do Pokemon spawn? <span class="faq-arrow">+</span></summary>
+          <div class="faq-body">Pokemon appear randomly in your server channels as members chat. When one appears, type
+            its name to catch it. The more active your server, the more spawns you'll see.</div>
+        </details>
+        <details class="faq">
+          <summary>How does the battle system work? <span class="faq-arrow">+</span></summary>
+          <div class="faq-body">Mewbot uses a full Gen 7 competitive battle engine. Abilities, held items, weather,
+            terrain, status effects, type matchups, and priority moves all function exactly as you'd expect.</div>
+        </details>
+        <details class="faq">
+          <summary>Can I trade Pokemon across servers? <span class="faq-arrow">+</span></summary>
+          <div class="faq-body">Yes. Your Pokemon collection is tied to your Discord account, not a specific server. You
+            can trade, battle, and interact with your Pokemon from any server that has Mewbot.</div>
+        </details>
+        <details class="faq">
+          <summary>What are Radiant and Shiny Pokemon? <span class="faq-arrow">+</span></summary>
+          <div class="faq-body">Shiny Pokemon are rare color variants just like in the mainline games. Radiant Pokemon
+            are Mewbot-exclusive ultra-rare forms with unique visual effects. Both are highly sought after.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-final">
+    <div class="container">
+      <h2 class="cta-title">Your adventure is<br><em>one click away.</em></h2>
+      <p class="cta-sub">Join tens of thousands of trainers already catching, battling, and trading across Discord.</p>
+      <div class="cta-actions">
+        <a href="https://discord.com/oauth2/authorize?client_id=519850436899897346&scope=bot+applications.commands&permissions=388160"
+          class="btn-primary-hero" target="_blank" rel="noopener"><svg width="17" height="13" viewBox="0 0 71 55"
+            fill="none">
+            <path
+              d="M60.1 4.9A58.5 58.5 0 0045.4.2a.2.2 0 00-.2.1 40.8 40.8 0 00-1.8 3.7 54 54 0 00-16.2 0A37.4 37.4 0 0025.4.3a.2.2 0 00-.2-.1A58.4 58.4 0 0010.5 4.9a.2.2 0 00-.1.1C1.5 18.7-.9 32.2.3 45.5v.2a58.9 58.9 0 0017.7 9 .2.2 0 00.3-.1 42.2 42.2 0 003.6-5.9.2.2 0 00-.1-.3 38.8 38.8 0 01-5.5-2.7.2.2 0 01 0-.4l1.1-.9a.2.2 0 01.2 0 42 42 0 0035.6 0 .2.2 0 01.2 0l1.1.9a.2.2 0 010 .4c-1.8 1-3.6 1.9-5.6 2.7a.2.2 0 00-.1.3 47.4 47.4 0 003.7 5.9.2.2 0 00.2.1 58.7 58.7 0 0017.7-9 .2.2 0 00.1-.2c1.4-15.1-2.4-28.2-10.1-39.8a.2.2 0 00-.1-.1zM23.7 37.3c-3.4 0-6.3-3.2-6.3-7s2.8-7 6.3-7 6.4 3.1 6.3 7-2.8 7-6.3 7zm23.2 0c-3.4 0-6.3-3.2-6.3-7s2.8-7 6.3-7 6.4 3.1 6.3 7-2.8 7-6.3 7z"
+              fill="currentColor" />
+          </svg>Add to Discord — It's Free</a>
+        <a href="https://discord.gg/mewbot" class="btn-ghost-hero" target="_blank" rel="noopener">Join Community</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img
+          src="https://dbl-discord.usercontent.prism.gg/avatars/519850436899897346/cdf16d0cfe9acf66f1a920698be7763a.png?size=256"
+          alt="Mewbot">
+        mewbot
+      </div>
+      <div class="footer-links">
+        <a href="#features">Features</a><a href="#commands">Commands</a><a href="#faq">FAQ</a>
+        <a href="https://discord.gg/mewbot" target="_blank" rel="noopener">Discord</a>
+        <a href="https://top.gg/bot/519850436899897346" target="_blank" rel="noopener">Vote on top.gg</a>
+        <a href="/terms-of-use.html">Terms</a><a href="/privacy-policy.html">Privacy</a>
+      </div>
+    </div>
+    <div class="footer-copy">
+      © 2026 Mewbot. Not affiliated with Nintendo, Game Freak, or The Pokemon Company.<br>
+      Pokemon and all related marks are trademarks of their respective owners.
+    </div>
+  </footer>
+
+</body>
+
+</html>
